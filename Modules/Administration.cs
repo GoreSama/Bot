@@ -40,5 +40,37 @@ namespace GoreSama.Modules
 
             await ReplyAsync("", false, embed.Build());
         }
+
+        [Command("serverinfo", RunMode = RunMode.Async)]
+        [Alias("si")]
+        [Summary("Returns server information")]
+        public async Task ServerInfo()
+        {
+            var guild = Context.Guild;
+            var icon = guild.IconUrl;
+            var date = $"{guild.CreatedAt.Month}/{guild.CreatedAt.Day}/{guild.CreatedAt.Year}";
+            var users = await Context.Guild.GetUsersAsync();
+
+            var embed = new EmbedBuilder()
+            {
+                Color = new Discord.Color(29, 140, 209),
+                ThumbnailUrl = icon
+            };
+
+            string roles = "";
+
+            foreach (var r in Context.Guild.Roles)
+            {
+                if (!r.Name.ToLower().Contains("everyone"))
+                {
+                    roles += $"{r.Name}\n";
+                }
+            }
+
+
+            embed.Title = $"**{guild.Name}** server information";
+            embed.Description = $"**Date created**: {date}\n**Guild members**: {users.Count()}\n**Roles**:\n{roles}";
+            await ReplyAsync("", false, embed.Build());
+        }
     }
 }

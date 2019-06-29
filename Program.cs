@@ -72,7 +72,7 @@ namespace GoreSama
 
             int pos = 0;
 
-            if (msg.HasCharPrefix('$', ref pos) /* || msg.HasMentionPrefix(_client.CurrentUser, ref pos) */)
+            if (msg.HasCharPrefix('$', ref pos))
             {
                 var context = new SocketCommandContext(_client, msg);
                 var result = await _commands.ExecuteAsync(context, pos, _services);
