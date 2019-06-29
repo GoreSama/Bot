@@ -67,7 +67,6 @@ namespace GoreSama.Modules
                 }
             }
 
-
             embed.Title = $"**{guild.Name}** server information";
             embed.Description = $"**Date created**: {date}\n**Guild members**: {users.Count()}\n**Roles**:\n{roles}";
             await ReplyAsync("", false, embed.Build());
