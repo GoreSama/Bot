@@ -11,7 +11,7 @@ namespace GoreSama.Modules
 {
     public class Administration : ModuleBase
     {
-        [Command("beep", RunMode = RunMode.Async)]
+        [Command("userinfo", RunMode = RunMode.Async)]
         [RequireUserPermission(Discord.GuildPermission.Administrator)]
         public async Task FetchUserInfo([Remainder] ulong id)
         {
