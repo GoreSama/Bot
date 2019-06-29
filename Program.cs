@@ -35,9 +35,20 @@ namespace GoreSama
             });
 
             _client.Log += Logger;
-            _commands.Log += Logger;
+            //_commands.Log += Logger; // Not using this for now
+            _commands.CommandExecuted += _commands_CommandExecuted;
 
             _services = ConfigureServices();
+        }
+
+        private Task _commands_CommandExecuted(Optional<CommandInfo> arg1, ICommandContext arg2, IResult arg3)
+        {
+            ConsoleColor c = arg3.IsSuccess == true ? ConsoleColor.Green : ConsoleColor.Red;
+            Console.ForegroundColor = c;
+            Console.WriteLine($"Command \"{arg1.Value.Name}\" was executed by {arg2.User.Username}.");
+            if (arg3.IsSuccess == false) Console.WriteLine($"Error: {arg3.ErrorReason}");
+            Console.ResetColor();
+            return Task.CompletedTask;
         }
 
         private static IServiceProvider ConfigureServices()
