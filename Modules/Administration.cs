@@ -12,6 +12,7 @@ namespace GoreSama.Modules
     public class Administration : ModuleBase
     {
         [Command("userinfo", RunMode = RunMode.Async)]
+        [Summary("Returns information of a guild user, must specify their ID.")]
         [RequireUserPermission(Discord.GuildPermission.Administrator)]
         public async Task FetchUserInfo([Remainder] ulong id)
         {

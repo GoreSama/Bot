@@ -3,9 +3,12 @@ using Discord.Commands;
 using GoreSama.Stuff;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace GoreSama.Modules
@@ -22,13 +25,49 @@ namespace GoreSama.Modules
             }
             else
             {
-                Console.WriteLine("An error occurred.");
                 Console.WriteLine(response.StatusCode);
             }
             return result;
         }
 
+        public async Task<string> GetResponseAsync(string v, WebHeaderCollection headers = null)
+        {
+            var wr = (HttpWebRequest)WebRequest.Create(v);
+            if (headers != null)
+                wr.Headers = headers;
+            using (var sr = new StreamReader((await wr.GetResponseAsync()).GetResponseStream()))
+            {
+                return await sr.ReadToEndAsync();
+            }
+        }
+
+        public async Task<string> GetDanbooruImageLink(string tag)
+        {
+            try
+            {
+                var rng = new Random();
+
+                var webpage = await GetResponseAsync($"http://danbooru.donmai.us/posts?page={ rng.Next(0, 15) }&tags={ tag.Replace(" ", "_") }");
+                var matches = Regex.Matches(webpage, "data-file-url=\"(?<id>.*?)\"");
+
+                return $"{ matches[rng.Next(0, matches.Count)].Groups["id"].Value }";
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        [Command("danbooru", RunMode = RunMode.Async)]
+        [RequireNsfw]
+        [Summary("Searches Danbooru for a randomm image of a specified tag. Example: g!danbooru atago_(azur_lane)")]
+        public async Task Danbooru([Remainder] string tag)
+        {
+            await ReplyAsync(await GetDanbooruImageLink(tag));
+        }
+
         [Command("gelbooru", RunMode = RunMode.Async)]
+        [Summary("Searches Gelbooru for a random image of a specified tag. Example: g!gelbooru atago_(azur_lane)")]
         [RequireNsfw]
         public async Task GelBoDu([Remainder] string tag)
         {
