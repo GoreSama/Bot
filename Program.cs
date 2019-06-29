@@ -30,25 +30,14 @@ namespace GoreSama
 
             _commands = new CommandService(new CommandServiceConfig
             {
-                LogLevel = LogSeverity.Info,
+                LogLevel = LogSeverity.Debug,
                 CaseSensitiveCommands = false
             });
 
             _client.Log += Logger;
-            //_commands.Log += Logger; // Not using this for now
-            _commands.CommandExecuted += _commands_CommandExecuted;
+            _commands.Log += Logger; // Jk
 
             _services = ConfigureServices();
-        }
-
-        private Task _commands_CommandExecuted(Optional<CommandInfo> arg1, ICommandContext arg2, IResult arg3)
-        {
-            ConsoleColor c = arg3.IsSuccess == true ? ConsoleColor.Green : ConsoleColor.Red;
-            Console.ForegroundColor = c;
-            Console.WriteLine($"Command \"{arg1.Value.Name}\" was executed by {arg2.User.Username}.");
-            if (arg3.IsSuccess == false) Console.WriteLine($"Error: {arg3.ErrorReason}");
-            Console.ResetColor();
-            return Task.CompletedTask;
         }
 
         private static IServiceProvider ConfigureServices()
@@ -87,6 +76,9 @@ namespace GoreSama
             {
                 var context = new SocketCommandContext(_client, msg);
                 var result = await _commands.ExecuteAsync(context, pos, _services);
+                if (result.Error.HasValue &&
+                result.Error.Value != CommandError.UnknownCommand)
+                    Console.WriteLine(result.ToString());
             }
         }
 
