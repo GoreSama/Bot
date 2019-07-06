@@ -15,6 +15,8 @@ namespace GoreSama.Modules
         {
             await ReplyAsync("Pong!");
         }
+        
+        // Probably not going to make other commands for now
 
     }
 }

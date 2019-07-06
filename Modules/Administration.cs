@@ -42,6 +42,17 @@ namespace GoreSama.Modules
             await ReplyAsync("", false, embed.Build());
         }
 
+        [Command("purge", RunMode = RunMode.Async)]
+        [Summary("Purges the current channel of a specified number of messages.")]
+        [Alias("p")]
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        public async Task Purge([Remainder] int amount)
+        {
+            var msgs = await Context.Channel.GetMessagesAsync(amount + 1).FlattenAsync();
+            await (Context.Channel as SocketTextChannel).DeleteMessagesAsync(msgs);
+            
+        }
+
         [Command("serverinfo", RunMode = RunMode.Async)]
         [Alias("si")]
         [Summary("Returns server information")]

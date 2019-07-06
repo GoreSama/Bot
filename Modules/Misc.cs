@@ -57,7 +57,7 @@ namespace GoreSama.Modules
             await DeleteMessage(m, 30);
         }
 
-        private async Task DeleteMessage(IUserMessage msg, int seconds)
+        public static async Task DeleteMessage(IUserMessage msg, int seconds)
         {
             seconds = seconds * 1000;
             await Task.Delay(seconds);

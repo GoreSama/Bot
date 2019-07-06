@@ -1,9 +1,12 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using Discord.WebSocket;
+using GoreSama.Modules;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -15,6 +18,8 @@ namespace GoreSama
     {
         private DiscordSocketClient _client;
 
+        private ulong _NSFW = 596042136785387520;
+
         private readonly CommandService _commands;
         private readonly IServiceProvider _services;
 
@@ -25,7 +30,8 @@ namespace GoreSama
             _client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Info,
-                MessageCacheSize = 50
+                MessageCacheSize = 100,
+                ExclusiveBulkDelete = false
             });
 
             _commands = new CommandService(new CommandServiceConfig
@@ -51,13 +57,68 @@ namespace GoreSama
         {
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
             _client.MessageReceived += MessageHandler;
+            _client.UserJoined += _client_UserJoined;
+            _client.ReactionAdded += AddedReactions;
+            _client.ReactionRemoved += RemovedReactions;
+        }
+
+        private async Task RemovedReactions(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        {
+            var guildChannel = channel as SocketGuildChannel;
+            var userMessage = await message.GetOrDownloadAsync();
+            var NSFW = new Emoji("🔞");
+
+            SocketGuildUser reactionUser = reaction.User.IsSpecified ? reaction.User.Value as SocketGuildUser : null;
+            var role = reactionUser.Guild.GetRole(_NSFW);
+            if (reactionUser != null && !reactionUser.IsBot && reaction.MessageId == 595794238856232965)
+            {
+                if (reaction.Emote.Name == NSFW.Name)
+                {
+                    await reactionUser.RemoveRoleAsync(role);
+                    Console.WriteLine($"Removed NSFW role from {reactionUser.Username}.");
+                }
+            }
+        }
+
+        private async Task AddedReactions(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        {
+            var guildChannel = channel as SocketGuildChannel;
+            var userMessage = await message.GetOrDownloadAsync();
+            var NSFW = new Emoji("🔞");
+
+            SocketGuildUser reactionUser = reaction.User.IsSpecified ? reaction.User.Value as SocketGuildUser : null;
+            var role = reactionUser.Guild.GetRole(_NSFW);
+            if (reactionUser != null && !reactionUser.IsBot && reaction.MessageId == 595794238856232965)
+            {
+                if (reaction.Emote.Name == NSFW.Name)
+                {
+                    await reactionUser.AddRoleAsync(role);
+                    Console.WriteLine($"Gave NSFW role to {reactionUser.Username}.");
+                }
+            }
+        }
+
+        private async Task _client_UserJoined(SocketGuildUser arg)
+        {
+            if (!arg.IsBot) await arg.AddRoleAsync(arg.Guild.GetRole(362462632046886912));
+            else
+                await arg.AddRoleAsync(arg.Guild.GetRole(_NSFW));
+
+            // channel for welcome messages
+            var channel = arg.Guild.GetTextChannel(593551622177554484);
+
+            if (!arg.IsBot)
+            {
+                var m = await channel.SendMessageAsync($"Welcome to **{arg.Guild.Name}**, {arg.Mention}! Please take a moment to read the rules in <#593553954722414597>, enjoy your stay!");
+                await Misc.DeleteMessage(m, 30);
+            }
         }
 
         private async Task MainAsync()
         {
             await InitializeCommands();
 
-            await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DiscordToken"));
+            await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DiscordToken")); 
             await _client.StartAsync();
 
             await Task.Delay(-1);
